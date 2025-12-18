@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Write-Ups — HR Tracker</title>
+  <style>
+    /* ---------- Design tokens ---------- */
+    :root{
+      --control-h: 40px;
+
+      --bg: #0b1020;
+      --panel: #101a33;
+      --panel-2: #0f1830;
+      --card: #0f1a36;
+      --border: rgba(255,255,255,.10);
+      --border-2: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --muted2: rgba(255,255,255,.54);
+      --accent: #5dd6ff;
+      --accent2: #8a7bff;
+      --danger: #ff5d7a;
+      --good: #49e2b1;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --radius2: 12px;
+      --gap: 14px;
+      --h: 40px;
+      --h-date: 28px;
+      --font-sm: 13px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(93,214,255,.20), transparent 55%),
+        radial-gradient(1000px 700px at 85% 15%, rgba(138,123,255,.18), transparent 50%),
+        radial-gradient(900px 600px at 50% 90%, rgba(73,226,177,.10), transparent 55%),
+        linear-gradient(180deg, #080c18, #070b14 40%, #060913);
+    }
+
+    /* ---------- App shell ---------- */
+    .topbar{
+      position: sticky; top:0; z-index:50;
+      background: rgba(6,9,19,.70);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner{
+      max-width: 1200px;
+      margin:0 auto;
+      padding: 16px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .brand h1{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.2px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; color: var(--muted);
+      padding: 6px 10px;
+      border:1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+    }
+    .brand .sub{
+      margin:0;
+      font-size:12px;
+      color: var(--muted2);
+    }
+    .toolbar{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+
+    main{
+      max-width: 1200px;
+      margin:0 auto;
+      padding: 18px;
+    }
+
+    /* ---------- Layout ---------- */
+    .layout{
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap: var(--gap);
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      background: rgba(16,26,51,.60);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel-header{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .panel-header h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .panel-header .hint{
+      font-size:12px;
+      color: var(--muted2);
+    }
+    .panel-body{ padding: 14px; }
+
+    /* ---------- Form controls (alignment-focused) ---------- */
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .label{
+      font-size:12px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    input, select, textarea, button{
+      font: inherit;
+    }
+    input, select, textarea{
+      width:100%;
+      height: var(--h);
+      padding: 10px 12px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--border-2);
+      background: rgba(10,16,32,.75);
+      color: var(--text);
+      outline:none;
+    }
+    textarea{
+      height: auto;
+      min-height: 64px;
+      resize: vertical;
+      padding-top: 10px;
+      line-height: 1.35;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(93,214,255,.55);
+      box-shadow: 0 0 0 4px rgba(93,214,255,.12);
+    }
+
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+    .grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: start; }
+    @media (max-width: 520px){
+      .grid2, .grid3{ grid-template-columns: 1fr; }
+    }
+
+    .actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+      margin-top: 12px;
+    }
+    button{
+      height: var(--h);
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-2);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      white-space: nowrap;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    .primary{
+      border: none;
+      background: linear-gradient(90deg, rgba(93,214,255,.95), rgba(138,123,255,.95));
+      color: #0a1020;
+      font-weight: 800;
+    }
+    .primary:hover{ filter: brightness(1.05); }
+    .danger{
+      border-color: rgba(255,93,122,.55);
+      background: rgba(255,93,122,.10);
+      color: rgba(255,220,228,.95);
+    }
+    .ghost{
+      background: rgba(255,255,255,.03);
+    }
+
+    .divider{
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    /* ---------- Lists ---------- */
+    .searchRow{
+      display:flex; gap: 10px; align-items:center;
+    }
+    .searchRow input{ flex: 1; }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .cardItem{
+      border: 1px solid var(--border);
+      background: rgba(15,26,54,.55);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .cardItem.selected{
+      border-color: rgba(93,214,255,.65);
+      box-shadow: 0 0 0 4px rgba(93,214,255,.10);
+    }
+    .cardTop{
+      display:flex; align-items:flex-start; justify-content:space-between; gap: 10px;
+    }
+    .title{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .metaRow{
+      display:flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 8px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+    }
+    .chip strong{ color: var(--text); font-weight: 700; }
+
+    .cardText{
+      margin-top: 10px;
+      font-size: 13px;
+      color: rgba(255,255,255,.86);
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+    .rowButtons{
+      margin-top: 10px;
+      display:flex; gap: 10px; flex-wrap: wrap;
+    }
+    .small{
+      font-size: 12px;
+      color: var(--muted2);
+    }
+
+    /* ---------- Toast ---------- */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      z-index: 100;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(10,16,32,.85);
+      color: var(--text);
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity .15s ease;
+    }
+    .toast.show{ opacity: 1; }
+
+    /* ---------- Print ---------- */
+    @media print{
+      body{ background: #fff !important; color:#111 !important; }
+      .topbar, .layout, .toast{ display:none !important; }
+      #printPanel{ display:block !important; }
+      main{ max-width: none; padding: 0; }
+    }
+    #printPanel{ display:none; }
+  
+    input[type="date"]{
+      height: var(--h-date);
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+  
+    /* Level colors */
+    .levelDot{
+      width: 8px; height: 8px; border-radius: 999px; display:inline-block;
+      border: 1px solid rgba(255,255,255,.35);
+      margin-right: 6px;
+      transform: translateY(1px);
+    }
+    .level-verbal   .levelDot{ background: rgba(73,226,177,.95); }
+    .level-written  .levelDot{ background: rgba(255,193,77,.95); }
+    .level-final    .levelDot{ background: rgba(255,93,122,.95); }
+
+    /* Subtle left accent for write-up cards */
+    .wuAccent{ position: relative; }
+    .wuAccent:before{
+      content:"";
+      position:absolute;
+      left:0; top:10px; bottom:10px;
+      width: 3px;
+      border-radius: 999px;
+      opacity: .9;
+      background: rgba(255,255,255,.12);
+    }
+    .level-verbal.wuAccent:before  { background: rgba(73,226,177,.75); }
+    .level-written.wuAccent:before { background: rgba(255,193,77,.80); }
+    .level-final.wuAccent:before   { background: rgba(255,93,122,.80); }
+
+    /* Selected state follows the level */
+    .level-verbal.cardItem.selected  { box-shadow: 0 0 0 4px rgba(73,226,177,.12); border-color: rgba(73,226,177,.65); }
+    .level-written.cardItem.selected { box-shadow: 0 0 0 4px rgba(255,193,77,.14); border-color: rgba(255,193,77,.70); }
+    .level-final.cardItem.selected   { box-shadow: 0 0 0 4px rgba(255,93,122,.14); border-color: rgba(255,93,122,.70); }
+
+  
+    /* HubSpot-like list rows */
+    .listTable{ display:flex; flex-direction:column; gap:8px; }
+    .rowHeader{
+      display:grid;
+      gap:10px;
+      align-items:center;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .rowItem{
+      display:grid;
+      gap:10px;
+      align-items:center;
+      padding: 10px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(15,26,54,.45);
+    }
+    .rowItem:hover{ background: rgba(15,26,54,.60); }
+    .rowItem.selected{
+      border-color: rgba(93,214,255,.65);
+      box-shadow: 0 0 0 4px rgba(93,214,255,.10);
+    }
+    .cellTitle{
+      font-weight: 700;
+      color: var(--text);
+      font-size: 13px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cellSub{
+      color: var(--muted);
+      font-size: 12px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cellMono{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cellActions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .cellActions button{ height: 30px; padding: 0 10px; border-radius: 10px; }
+    .rowHeader .cellActions{ visibility:hidden; }
+
+    /* Column layouts */
+    .empCols{ grid-template-columns: 1.4fr .8fr 1.2fr .6fr 1.2fr; }
+    .wuCols { grid-template-columns: .9fr 1.1fr 1.0fr 1.0fr .6fr 1.3fr; }
+
+    @media (max-width: 980px){
+      .empCols{ grid-template-columns: 1.4fr .8fr 1.2fr .7fr; }
+      .empCols .hideMd{ display:none; }
+      .wuCols { grid-template-columns: .9fr 1.2fr 1.0fr .8fr 1.2fr; }
+      .wuCols .hideMd{ display:none; }
+    }
+    @media (max-width: 620px){
+      .empCols{ grid-template-columns: 1.3fr .7fr .9fr; }
+      .empCols .hideSm{ display:none; }
+      .wuCols { grid-template-columns: .9fr 1.2fr .9fr; }
+      .wuCols .hideSm{ display:none; }
+      .cellActions{ justify-content:flex-start; }
+    }
+
+  
+    /* Dropdown date controls (HubSpot-like) */
+    .dateSelect{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .dateSelect select{
+      height: var(--control-h);
+      padding: 6px 8px;
+      font-size: 13px;
+      border-radius: 10px;
+      border: 1px solid var(--border-2);
+      background: rgba(10,16,32,.75);
+      color: var(--text);
+      outline: none;
+    }
+    .dateSelect select:focus{
+      border-color: rgba(93,214,255,.55);
+      box-shadow: 0 0 0 4px rgba(93,214,255,.12);
+    }
+
+  
+    .dateSelect > *{
+      display:flex;
+      flex-direction:column;
+    }
+
+  
+    /* Violation level colors */
+    .level-verbal .levelDot{ background:#4ade80; }   /* green */
+    .level-written .levelDot{ background:#fbbf24; }  /* amber */
+    .level-final .levelDot{ background:#f87171; }    /* red */
+
+    .level-verbal.wuAccent:before{ background:#4ade80; }
+    .level-written.wuAccent:before{ background:#fbbf24; }
+    .level-final.wuAccent:before{ background:#f87171; }
+
+    .level-verbal.cardItem.selected{
+      border-color:#4ade80;
+      box-shadow:0 0 0 4px rgba(74,222,128,.15);
+    }
+    .level-written.cardItem.selected{
+      border-color:#fbbf24;
+      box-shadow:0 0 0 4px rgba(251,191,36,.18);
+    }
+    .level-final.cardItem.selected{
+      border-color:#f87171;
+      box-shadow:0 0 0 4px rgba(248,113,113,.18);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <h1>
+          Employee Write-Ups
+          <span class="badge" id="statsBadge">0 employees • 0 write-ups</span>
+        </h1>
+        <p class="sub">Local only (saves to your browser) • Export JSON weekly for backup</p>
+      </div>
+      <div class="toolbar">
+        <button class="ghost" id="btnExportTop">Export JSON</button>
+        <button class="ghost" id="btnImportTop">Import JSON</button>
+        <button class="danger" id="btnResetTop">Reset</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none;">
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="layout">
+      <!-- Left: Forms -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Add / Edit Employee</h2>
+            <div class="hint">Create employees, then log write-ups.</div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <div class="label">Employee name</div>
+            <input id="empName" placeholder="e.g., John Smith">
+          </div>
+
+          <div class="grid2" style="margin-top:12px;">
+            <div class="field">
+              <div class="label">Role / department</div>
+              <select id="empRole">
+          <option value="" selected="selected">Select role</option>
+          <option>Driver</option>
+          <option>Sales</option>
+          <option>Meat Cutter</option>
+        </select>
+            </div>
+            <div class="field">
+              <div class="label">Status</div>
+              <select id="empStatus">
+                <option selected="selected">Active</option>
+                <option>On Leave</option>
+                <option>Terminated</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="btnSaveEmp">Save employee</button>
+            <button class="ghost" id="btnClearEmp">Clear</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="panel-header" style="padding:0 0 10px; border:0;">
+            <div>
+              <h2>Log a Write-Up</h2>
+              <div class="hint">Click a write-up to select it for printing.</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">Employee</div>
+            <select id="wuEmployee"><option value="" selected="selected">Add an employee first</option></select>
+          </div>
+
+          <div class="grid3" style="margin-top:12px;">
+            <div class="field">
+              <div class="label">Date</div>
+                          <div class="dateSelect" data-date-select="wuDate">
+              <select id="wuDateM"><option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12" selected="selected">Dec</option></select>
+              <select id="wuDateD"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18" selected="selected">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+              <select id="wuDateY"><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025" selected="selected">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+              <input id="wuDate" type="hidden" value="2025-12-18">
+            </div>
+            </div>
+            <div class="field">
+              <div class="label">Warning Type</div>
+              <select id="wuType">
+                <option selected="selected">Attendance</option>
+                <option>Safety</option>
+                <option>Performance</option>
+                <option>Conduct</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="label">Violation Level</div>
+              <select id="wuLevel">
+                <option selected="selected">Verbal Warning (documented)</option>
+                <option>Written Warning</option>
+                <option>Final Warning</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <div class="label">Summary (facts only)</div>
+            <textarea id="wuSummary" placeholder="What happened? Include time, location, witnesses if relevant."></textarea>
+          </div>
+
+          <div class="grid2" style="margin-top:12px;">
+            <div class="field">
+              <div class="label">Expectation / improvement plan</div>
+              <input id="wuPlan" placeholder="What must change + by when">
+            </div>
+            <div class="field">
+              <div class="label">Follow-up date</div>
+                          <div class="dateSelect" data-date-select="wuFollowUp">
+              <select id="wuFollowUpM"><option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12" selected="selected">Dec</option></select>
+              <select id="wuFollowUpD"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17" selected="selected">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+              <select id="wuFollowUpY"><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025" selected="selected">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+              <input id="wuFollowUp" type="hidden" value="2025-12-17">
+            </div>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:12px;">
+            <div class="field">
+              <div class="label">Supervisor</div>
+              <input id="wuSupervisor" placeholder="Supervisor name/initials">
+            </div>
+            <div class="field">
+              <div class="label">Acknowledged?</div>
+              <select id="wuAck">
+                <option value="No" selected="selected">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="btnSaveWU">Save write-up</button>
+            <button class="ghost" id="btnClearWU">Clear</button>
+            <button id="btnPrintWU">Print / Save PDF</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="small">
+            Tip: This app stores data on <b>this device + browser only</b>. Use Export/Import for backups.
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Browse -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Browse</h2>
+            <div class="hint">Search, filter, view employee history.</div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="searchRow">
+            <input id="search" placeholder="Search: employee, type, supervisor, notes…">
+          </div>
+
+          <div class="grid2" style="margin-top:12px;">
+            <div class="field">
+              <div class="label">Filter status</div>
+              <select id="filterStatus">
+                <option value="" selected="selected">All</option>
+                <option>Active</option>
+                <option>On Leave</option>
+                <option>Terminated</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="label">Filter type</div>
+              <select id="filterType">
+                <option value="" selected="selected">All</option>
+                <option>Attendance</option>
+                <option>Safety</option>
+                <option>Performance</option>
+                <option>Conduct</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px;">
+            <div class="small" style="color:var(--muted);">Employees</div>
+            <div class="small" id="selectedEmpLabel">No employee selected</div>
+          </div>
+          <div class="listTable" id="empList" style="margin-top:10px;"><div class="rowHeader empCols">
+      <div>Name</div>
+      <div>Status</div>
+      <div class="hideSm">Role</div>
+      <div>Count</div>
+      <div class="cellActions">Actions</div>
+    </div><div class="small">No employees match your filters.</div></div>
+
+          <div class="divider"></div>
+
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px;">
+            <div class="small" style="color:var(--muted);">Write-ups</div>
+            <div class="small" id="selectedWriteupLabel">No write-up selected</div>
+          </div>
+          <div class="listTable" id="wuList" style="margin-top:10px;"><div class="rowHeader wuCols">
+      <div>Date</div>
+      <div>Warning Type</div>
+      <div>Violation Level</div>
+      <div class="hideSm">Supervisor</div>
+      <div class="hideMd">Ack</div>
+      <div class="cellActions">Actions</div>
+    </div><div class="small">Select an employee to see their write-ups.</div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PRINT PANEL -->
+    <section id="printPanel" class="panel" style="margin-top:14px;">
+      <div class="panel-header">
+        <div>
+          <h2>Printable Write-Up</h2>
+          <div class="hint">Use Print / Save PDF, then get signatures.</div>
+        </div>
+        <div class="actions" style="margin:0;">
+          <button class="primary" id="btnDoPrint">Print / Save PDF</button>
+          <button class="ghost" id="btnClosePrint">Close</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="printContent" style="background:#fff; color:#111; padding:16px; border-radius:12px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const KEY = "employee_writeups_tracker_v2";
+
+  const $ = (id) => document.getElementById(id);
+
+  const toast = (msg) => {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 1600);
+  };
+
+  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+  const escapeHtml = (str) => (str || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+  const fmtDate = (iso) => {
+    if (!iso) return "";
+    try {
+      const d = new Date(iso + "T00:00:00");
+      return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    } catch { return iso; }
+  };
+
+    function levelClass_(level){
+    const s = String(level || "").toLowerCase();
+    if (s.includes("final")) return "level-final";
+    if (s.includes("written")) return "level-written";
+    if (s.includes("verbal")) return "level-verbal";
+    return "level-verbal";
+  }
+
+
+
+  
+  // Dropdown date controls (Month/Day/Year) -> hidden ISO field
+  function daysInMonth_(year, month1to12){
+    return new Date(year, month1to12, 0).getDate();
+  }
+
+  function pad2_(n){ return String(n).padStart(2, "0"); }
+
+  function setSelectOptions_(sel, options){
+    sel.innerHTML = "";
+    for (const {value, label} of options){
+      const o = document.createElement("option");
+      o.value = String(value);
+      o.textContent = String(label);
+      sel.appendChild(o);
+    }
+  }
+
+  function setDateSelectFromIso_(hiddenId, iso){
+    const mSel = document.getElementById(hiddenId + "M");
+    const dSel = document.getElementById(hiddenId + "D");
+    const ySel = document.getElementById(hiddenId + "Y");
+    const hidden = document.getElementById(hiddenId);
+    if (!mSel || !dSel || !ySel || !hidden) return;
+
+    let y, m, d;
+    if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)){
+      y = Number(iso.slice(0,4));
+      m = Number(iso.slice(5,7));
+      d = Number(iso.slice(8,10));
+    } else {
+      const now = new Date();
+      y = now.getFullYear();
+      m = now.getMonth() + 1;
+      d = now.getDate();
+    }
+
+    // Clamp day for month/year
+    const maxD = daysInMonth_(y, m);
+    if (d > maxD) d = maxD;
+
+    ySel.value = String(y);
+    mSel.value = String(m);
+    rebuildDayOptions_(hiddenId, y, m, d);
+
+    hidden.value = `${y}-${pad2_(m)}-${pad2_(d)}`;
+  }
+
+  function rebuildDayOptions_(hiddenId, year, month, day){
+    const dSel = document.getElementById(hiddenId + "D");
+    if (!dSel) return;
+    const max = daysInMonth_(year, month);
+    const opts = [];
+    for (let i=1;i<=max;i++) opts.push({value:i, label:i});
+    setSelectOptions_(dSel, opts);
+    dSel.value = String(Math.min(day, max));
+  }
+
+  function wireDateSelect_(hiddenId){
+    const mSel = document.getElementById(hiddenId + "M");
+    const dSel = document.getElementById(hiddenId + "D");
+    const ySel = document.getElementById(hiddenId + "Y");
+    const hidden = document.getElementById(hiddenId);
+    if (!mSel || !dSel || !ySel || !hidden) return;
+
+    const updateHidden = () => {
+      if(!ySel.value || !mSel.value || !dSel.value){ hidden.value = ""; return; }
+      const y = Number(ySel.value);
+      const m = Number(mSel.value);
+      const d = Number(dSel.value);
+      const max = daysInMonth_(y, m);
+      const dd = Math.min(d, max);
+      if (dd !== d) dSel.value = String(dd);
+      hidden.value = `${y}-${pad2_(m)}-${pad2_(dd)}`;
+    };
+
+    ySel.addEventListener("change", () => {
+      rebuildDayOptions_(hiddenId, Number(ySel.value), Number(mSel.value), Number(dSel.value));
+      updateHidden();
+    });
+    mSel.addEventListener("change", () => {
+      rebuildDayOptions_(hiddenId, Number(ySel.value), Number(mSel.value), Number(dSel.value));
+      updateHidden();
+    });
+    dSel.addEventListener("change", updateHidden);
+
+    // init hidden value
+    updateHidden();
+  }
+
+  function initDateDropdowns(){
+    const now = new Date();
+    const yearNow = now.getFullYear();
+
+    const makeYears = () => {
+      const years = [];
+      for (let y = yearNow - 5; y <= yearNow + 5; y++) years.push({value:y, label:y});
+      return years;
+    };
+    const makeMonths = () => {
+      const labels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const months = [];
+      for (let m=1;m<=12;m++) months.push({value:m, label: labels[m-1]});
+      return months;
+    };
+
+    for (const hiddenId of ["wuDate","wuFollowUp"]){
+      const mSel = document.getElementById(hiddenId + "M");
+      const dSel = document.getElementById(hiddenId + "D");
+      const ySel = document.getElementById(hiddenId + "Y");
+      const hidden = document.getElementById(hiddenId);
+      if (!mSel || !dSel || !ySel || !hidden) continue;
+
+      setSelectOptions_(ySel, makeYears());
+      setSelectOptions_(mSel, makeMonths());
+
+      // default dates
+      const isoDefault = hiddenId === "wuDate"
+        ? new Date().toISOString().slice(0,10)
+        : ""; // follow-up blank unless user sets it
+
+      if (isoDefault){
+        const y = Number(isoDefault.slice(0,4));
+        const m = Number(isoDefault.slice(5,7));
+        const d = Number(isoDefault.slice(8,10));
+        ySel.value = String(y);
+        mSel.value = String(m);
+        rebuildDayOptions_(hiddenId, y, m, d);
+        dSel.value = String(d);
+        hidden.value = isoDefault;
+      } else {
+        // set to today but allow clearing by keeping hidden empty until user changes
+        ySel.value = String(yearNow);
+        mSel.value = String(now.getMonth()+1);
+        rebuildDayOptions_(hiddenId, yearNow, now.getMonth()+1, now.getDate());
+        dSel.value = String(now.getDate());
+        hidden.value = "";
+      }
+
+      wireDateSelect_(hiddenId);
+    }
+  }
+
+const loadState = () => {
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return { employees: [], writeups: [] };
+      const parsed = JSON.parse(raw);
+      return {
+        employees: Array.isArray(parsed.employees) ? parsed.employees : [],
+        writeups: Array.isArray(parsed.writeups) ? parsed.writeups : []
+      };
+    }catch{
+      return { employees: [], writeups: [] };
+    }
+  };
+
+  let state = loadState();
+  let selectedEmpId = null;
+  let selectedWriteupId = null;
+  let editingEmpId = null;
+  let editingWuId = null;
+
+  const saveState = () => {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    renderAll();
+  };
+
+  const updateStats = () => {
+    $("statsBadge").textContent = `${state.employees.length} employees • ${state.writeups.length} write-ups`;
+  };
+
+  const renderEmployeeDropdown = () => {
+    const sel = $("wuEmployee");
+    sel.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = state.employees.length ? "Select employee…" : "Add an employee first";
+    sel.appendChild(opt0);
+
+    state.employees.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
+      const o = document.createElement("option");
+      o.value = e.id;
+      o.textContent = `${e.name} (${e.status})`;
+      sel.appendChild(o);
+    });
+  };
+
+  const getFilteredEmployees = () => {
+    const q = $("search").value.trim().toLowerCase();
+    const fs = $("filterStatus").value;
+    const ft = $("filterType").value;
+
+    return state.employees
+      .filter(e => !fs || e.status === fs)
+      .filter(e => {
+        if (!q) return true;
+        return (`${e.name} ${e.role||""} ${e.status||""}`).toLowerCase().includes(q);
+      })
+      .filter(e => {
+        if (!ft) return true;
+        return state.writeups.some(w => w.employeeId === e.id && w.type === ft);
+      })
+      .sort((a,b)=>a.name.localeCompare(b.name));
+  };
+
+  
+  const renderEmployees = () => {
+    const list = $("empList");
+    list.innerHTML = "";
+    const emps = getFilteredEmployees();
+
+    // Header
+    const header = document.createElement("div");
+    header.className = "rowHeader empCols";
+    header.innerHTML = `
+      <div>Name</div>
+      <div>Status</div>
+      <div class="hideSm">Role</div>
+      <div>Count</div>
+      <div class="cellActions">Actions</div>
+    `;
+    list.appendChild(header);
+
+    if(!emps.length){
+      const d = document.createElement("div");
+      d.className = "small";
+      d.textContent = "No employees match your filters.";
+      list.appendChild(d);
+      return;
+    }
+
+    emps.forEach(e => {
+      const wuCount = state.writeups.filter(w => w.employeeId === e.id).length;
+
+      const row = document.createElement("div");
+      row.className = "rowItem empCols" + (selectedEmpId === e.id ? " selected" : "");
+      row.dataset.act = "emp-row";
+      row.dataset.id = e.id;
+
+      row.innerHTML = `
+        <div>
+          <div class="cellTitle">${escapeHtml(e.name)}</div>
+          <div class="cellSub hideMd">${escapeHtml(e.role || "—")}</div>
+        </div>
+        <div class="cellSub">${escapeHtml(e.status)}</div>
+        <div class="cellSub hideSm">${escapeHtml(e.role || "—")}</div>
+        <div class="cellMono">${wuCount}</div>
+        <div class="cellActions">
+          <button class="ghost" data-act="emp-view" data-id="${e.id}">View</button>
+          <button class="ghost" data-act="emp-edit" data-id="${e.id}">Edit</button>
+          <button class="danger" data-act="emp-del" data-id="${e.id}">Delete</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+  };
+
+
+  
+  const renderWriteups = () => {
+    const wrap = $("wuList");
+    wrap.innerHTML = "";
+
+    // Header row always present
+    const header = document.createElement("div");
+    header.className = "rowHeader wuCols";
+    header.innerHTML = `
+      <div>Date</div>
+      <div>Warning Type</div>
+      <div>Violation Level</div>
+      <div class="hideSm">Supervisor</div>
+      <div class="hideMd">Ack</div>
+      <div class="cellActions">Actions</div>
+    `;
+    wrap.appendChild(header);
+
+    if(!selectedEmpId){
+      $("selectedEmpLabel").textContent = "No employee selected";
+      $("selectedWriteupLabel").textContent = "No write-up selected";
+      const d = document.createElement("div");
+      d.className = "small";
+      d.textContent = "Select an employee to see their write-ups.";
+      wrap.appendChild(d);
+      return;
+    }
+
+    const emp = state.employees.find(e => e.id === selectedEmpId);
+    $("selectedEmpLabel").textContent = emp ? emp.name : "Unknown employee";
+
+    const q = $("search").value.trim().toLowerCase();
+    const ft = $("filterType").value;
+
+    const items = state.writeups
+      .filter(w => w.employeeId === selectedEmpId)
+      .filter(w => !ft || w.type === ft)
+      .filter(w => {
+        if(!q) return true;
+        const blob = `${w.type} ${w.level} ${w.summary} ${w.plan} ${w.supervisor} ${w.ack}`.toLowerCase();
+        return blob.includes(q);
+      })
+      .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+
+    if(!items.length){
+      $("selectedWriteupLabel").textContent = "No write-up selected";
+      const d = document.createElement("div");
+      d.className = "small";
+      d.textContent = "No write-ups for this employee (with current filters).";
+      wrap.appendChild(d);
+      return;
+    }
+
+    const selected = items.find(w => w.id === selectedWriteupId);
+    $("selectedWriteupLabel").textContent = selected ? fmtDate(selected.date) : "No write-up selected";
+
+    items.forEach(w => {
+      const lvlClass = levelClass_(w.level);
+
+      const row = document.createElement("div");
+      row.className = "rowItem wuCols wuAccent " + lvlClass + (selectedWriteupId === w.id ? " selected" : "");
+      row.dataset.act = "wu-row";
+      row.dataset.id = w.id;
+
+      row.innerHTML = `
+        <div class="cellMono">${fmtDate(w.date)}</div>
+        <div class="cellSub">${escapeHtml(w.type || "—")}</div>
+        <div class="cellSub"><span class="levelDot"></span>${escapeHtml(w.level || "—")}</div>
+        <div class="cellSub hideSm">${escapeHtml(w.supervisor || "—")}</div>
+        <div class="cellSub hideMd">${escapeHtml(w.ack || "No")}</div>
+        <div class="cellActions">
+          <button class="ghost" data-act="wu-edit" data-id="${w.id}">Edit</button>
+          <button class="danger" data-act="wu-del" data-id="${w.id}">Delete</button>
+        </div>
+      `;
+      wrap.appendChild(row);
+    });
+  };
+
+
+  const renderAll = () => {
+    updateStats();
+    renderEmployeeDropdown();
+    renderEmployees();
+    renderWriteups();
+  };
+
+  // ---------- Employee save/clear ----------
+  $("btnSaveEmp").addEventListener("click", () => {
+    const name = $("empName").value.trim();
+    const role = $("empRole").value.trim();
+    const status = $("empStatus").value;
+
+    if(!name) return toast("Employee name is required.");
+
+    if(editingEmpId){
+      const emp = state.employees.find(e => e.id === editingEmpId);
+      if(!emp) return toast("Employee not found.");
+      emp.name = name; emp.role = role; emp.status = status;
+      toast("Employee updated.");
+      editingEmpId = null;
+    }else{
+      const dup = state.employees.some(e => e.name.toLowerCase() === name.toLowerCase());
+      if(dup && !confirm("Employee name already exists. Add anyway?")) return;
+      state.employees.push({ id: uid(), name, role, status, createdAt: new Date().toISOString() });
+      toast("Employee saved.");
+    }
+
+    $("empName").value = "";
+    $("empRole").value = "";
+    $("empStatus").value = "Active";
+    saveState();
+  });
+
+  $("btnClearEmp").addEventListener("click", () => {
+    editingEmpId = null;
+    $("empName").value = "";
+    $("empRole").value = "";
+    $("empStatus").value = "Active";
+    toast("Cleared.");
+  });
+
+  // ---------- Write-up save/clear ----------
+  const clearWu = () => {
+    editingWuId = null;
+    $("wuEmployee").value = "";
+    $("wuType").value = "Attendance";
+    $("wuLevel").value = " Note";
+    $("wuSummary").value = "";
+    $("wuPlan").value = "";
+    $("wuFollowUp").value = "";
+    $("wuSupervisor").value = "";
+    $("wuAck").value = "No";
+  };
+
+  $("btnSaveWU").addEventListener("click", () => {
+    const employeeId = $("wuEmployee").value;
+    if(!employeeId) return toast("Select an employee first.");
+
+    const payload = {
+      employeeId,
+      date: $("wuDate").value,
+      type: $("wuType").value,
+      level: $("wuLevel").value,
+      summary: $("wuSummary").value.trim(),
+      plan: $("wuPlan").value.trim(),
+      followUp: $("wuFollowUp").value,
+      supervisor: $("wuSupervisor").value.trim(),
+      ack: $("wuAck").value
+    };
+
+    if(!payload.summary) return toast("Summary is required.");
+
+    if(editingWuId){
+      const w = state.writeups.find(x => x.id === editingWuId);
+      if(!w) return toast("Write-up not found.");
+      Object.assign(w, payload);
+      toast("Write-up updated.");
+      editingWuId = null;
+    }else{
+      state.writeups.push({ id: uid(), ...payload, createdAt: new Date().toISOString() });
+      toast("Write-up saved.");
+    }
+
+    selectedEmpId = employeeId;
+    selectedWriteupId = null;
+    clearWu();
+    saveState();
+  });
+
+  $("btnClearWU").addEventListener("click", () => { clearWu(); toast("Cleared."); });
+
+  // ---------- Print ----------
+  const buildPrintHtml = (w) => {
+    const emp = state.employees.find(e => e.id === w.employeeId);
+    return `
+      <div style="font-family: Arial, Helvetica, sans-serif;">
+        <div style="display:flex; justify-content:space-between; gap:16px; align-items:flex-start;">
+          <div>
+            <div style="font-size:18px; font-weight:700;">Employee Write-Up</div>
+            <div style="margin-top:6px; font-size:12px;">Acknowledgment of discussion (not necessarily agreement).</div>
+          </div>
+          <div style="text-align:right; font-size:12px;">
+            <div><b>Date:</b> ${fmtDate(w.date)}</div>
+            <div><b>Warning Type:</b> ${escapeHtml(w.type)}</div>
+            <div><b>Violation Level:</b> ${escapeHtml(w.level)}</div>
+          </div>
+        </div>
+
+        <hr style="margin:14px 0;" />
+
+        <div style="display:flex; gap:20px; flex-wrap:wrap; font-size:13px;">
+          <div style="min-width:260px;">
+            <div><b>Employee:</b> ${escapeHtml(emp?.name || "Unknown")}</div>
+            <div><b>Role:</b> ${escapeHtml(emp?.role || "—")}</div>
+            <div><b>Status:</b> ${escapeHtml(emp?.status || "—")}</div>
+          </div>
+          <div style="min-width:260px;">
+            <div><b>Supervisor:</b> ${escapeHtml(w.supervisor || "—")}</div>
+            <div><b>Follow-up:</b> ${w.followUp ? fmtDate(w.followUp) : "—"}</div>
+            <div><b>Acknowledged:</b> ${escapeHtml(w.ack || "No")}</div>
+          </div>
+        </div>
+
+        <hr style="margin:14px 0;" />
+
+        <div style="font-size:13px;">
+          <div style="font-weight:700; margin-bottom:6px;">Summary (facts)</div>
+          <div style="white-space:pre-wrap;">${escapeHtml(w.summary || "")}</div>
+        </div>
+
+        <div style="font-size:13px; margin-top:14px;">
+          <div style="font-weight:700; margin-bottom:6px;">Expectation / Improvement Plan</div>
+          <div style="white-space:pre-wrap;">${escapeHtml(w.plan || "")}</div>
+        </div>
+
+        <hr style="margin:18px 0;" />
+
+        <div style="display:flex; gap:22px; flex-wrap:wrap; font-size:13px;">
+          <div style="flex:1; min-width:260px;">
+            <div><b>Employee Signature:</b> __________________________</div>
+            <div style="margin-top:10px;"><b>Date:</b> __________________</div>
+          </div>
+          <div style="flex:1; min-width:260px;">
+            <div><b>Supervisor Signature:</b> _________________________</div>
+            <div style="margin-top:10px;"><b>Date:</b> __________________</div>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  $("btnPrintWU").addEventListener("click", () => {
+    if(!selectedWriteupId) return toast("Click a write-up to select it first.");
+    const w = state.writeups.find(x => x.id === selectedWriteupId);
+    if(!w) return toast("Write-up not found.");
+    $("printContent").innerHTML = buildPrintHtml(w);
+    $("printPanel").style.display = "block";
+    toast("Printable form ready.");
+  });
+
+  $("btnDoPrint").addEventListener("click", () => window.print());
+  $("btnClosePrint").addEventListener("click", () => { $("printPanel").style.display = "none"; });
+
+  // ---------- Click handling ----------
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    const wuCard = null;
+
+    if(!btn || !btn.dataset.act) return;
+
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+
+    if(act === "emp-view"){
+      selectedEmpId = id;
+      selectedWriteupId = null;
+      renderAll();
+      return;
+    }
+
+    if(act === "emp-edit"){
+      const emp = state.employees.find(x => x.id === id);
+      if(!emp) return;
+      editingEmpId = id;
+      $("empName").value = emp.name;
+      $("empRole").value = emp.role || "";
+      $("empStatus").value = emp.status || "Active";
+      toast("Editing employee…");
+      return;
+    }
+
+    if(act === "emp-del"){
+      const emp = state.employees.find(x => x.id === id);
+      if(!emp) return;
+      const wuCount = state.writeups.filter(w => w.employeeId === id).length;
+      if(!confirm(`Delete ${emp.name}? This will also delete ${wuCount} write-up(s).`)) return;
+      state.employees = state.employees.filter(x => x.id !== id);
+      state.writeups = state.writeups.filter(w => w.employeeId !== id);
+      if(selectedEmpId === id) selectedEmpId = null;
+      if(selectedWriteupId && !state.writeups.some(w => w.id === selectedWriteupId)) selectedWriteupId = null;
+      toast("Employee deleted.");
+      saveState();
+      return;
+    }
+
+    if(act === "wu-edit"){
+      const w = state.writeups.find(x => x.id === id);
+      if(!w) return;
+      selectedWriteupId = id;
+      editingWuId = id;
+
+      $("wuEmployee").value = w.employeeId;
+      $("wuDate").value = w.date || "";
+      setDateSelectFromIso_("wuDate", w.date || "");
+      $("wuType").value = w.type || "Attendance";
+      $("wuLevel").value = w.level || " Note";
+      $("wuSummary").value = w.summary || "";
+      $("wuPlan").value = w.plan || "";
+      $("wuFollowUp").value = w.followUp || "";
+      setDateSelectFromIso_("wuFollowUp", w.followUp || "");
+      $("wuSupervisor").value = w.supervisor || "";
+      $("wuAck").value = w.ack || "No";
+
+      toast("Editing write-up…");
+      renderWriteups();
+      return;
+    }
+
+    if(act === "wu-del"){
+      const w = state.writeups.find(x => x.id === id);
+      if(!w) return;
+      if(!confirm("Delete this write-up?")) return;
+      state.writeups = state.writeups.filter(x => x.id !== id);
+      if(selectedWriteupId === id) selectedWriteupId = null;
+      toast("Write-up deleted.");
+      saveState();
+      return;
+    }
+  });
+
+  // ---------- Search + filters ----------
+  ["search","filterStatus","filterType"].forEach(id => {
+    $(id).addEventListener("input", renderAll);
+    $(id).addEventListener("change", renderAll);
+  });
+
+  // ---------- Export / Import / Reset (topbar + hidden input) ----------
+  const doExport = () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `employee_writeups_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    toast("Exported backup JSON.");
+  };
+
+  const openImport = () => $("importFile").click();
+
+  const doReset = () => {
+    if(!confirm("This will erase all employees and write-ups in this browser. Continue?")) return;
+    state = { employees: [], writeups: [] };
+    selectedEmpId = null; selectedWriteupId = null;
+    editingEmpId = null; editingWuId = null;
+    localStorage.removeItem(KEY);
+    renderAll();
+    toast("Reset complete.");
+  };
+
+  $("btnExportTop").addEventListener("click", doExport);
+  $("btnImportTop").addEventListener("click", openImport);
+  $("btnResetTop").addEventListener("click", doReset);
+
+  $("importFile").addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if(!file) return;
+    const text = await file.text();
+    try{
+      const parsed = JSON.parse(text);
+      if(!parsed || !Array.isArray(parsed.employees) || !Array.isArray(parsed.writeups)){
+        toast("Invalid file format.");
+      }else{
+        state = { employees: parsed.employees, writeups: parsed.writeups };
+        selectedEmpId = null; selectedWriteupId = null;
+        editingEmpId = null; editingWuId = null;
+        saveState();
+        toast("Imported successfully.");
+      }
+    }catch{
+      toast("Could not read that JSON file.");
+    }finally{
+      e.target.value = "";
+    }
+  });
+
+  // ---------- Init ----------
+
+  // Ensure dropdown options populate after DOM is ready
+  window.addEventListener("DOMContentLoaded", () => {
+    try { initDateDropdowns(); } catch (e) { console.error(e); }
+    renderAll();
+  });
+</script>
+
+
+</body></html>
